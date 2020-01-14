@@ -4,6 +4,7 @@ const path = require('path');
 const serverless = require('serverless-http');
 const app = express();
 const bodyParser = require('body-parser');
+const io = require('socket.io')(serverless);
 
 const router = express.Router();
 router.get('/', (req, res) => {
@@ -13,6 +14,20 @@ router.get('/', (req, res) => {
 });
 router.get('/another', (req, res) => res.json({ route: req.originalUrl }));
 router.post('/', (req, res) => res.json({ postBody: req.body }));
+
+io.on('connection', (socket) => {
+  console.log("a client connected");
+
+  // Listen
+  socket.on('chat message', (msg) => {
+      
+      console.log('Message ' + msg);
+
+      // Replay
+      io.emit('chat message', msg);
+  });
+})
+
 
 app.use(bodyParser.json());
 app.use('/.netlify/functions/server', router);  // path must route to lambda
